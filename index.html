@@ -6,27 +6,38 @@
 <style>
 body{background:#111;color:white;font-family:Arial;margin:0;padding:10px}
 h2{text-align:center}
-#chat{height:70vh;overflow-y:auto;background:#1e1e1e;padding:10px;border-radius:10px}
+#chat{height:60vh;overflow-y:auto;background:#1e1e1e;padding:10px;border-radius:10px}
 .msg{margin:8px 0;padding:10px;border-radius:10px;word-wrap:break-word}
 .user{background:#007bff;text-align:right}
 .ai{background:#333}
 #box{display:flex;margin-top:10px;gap:5px}
 input{flex:1;padding:12px;border-radius:10px;border:none}
 button{padding:12px 18px;background:#00ff88;border:none;border-radius:10px;font-weight:bold}
+#keybox{display:flex;margin-bottom:10px;gap:5px}
+#keybox input{background:#222;color:white}
 </style>
 </head>
 <body>
 <h2>🤖 LiveKing AI</h2>
-<div id="chat"><div class="msg ai">Yo wassup! Ask me anything bro.</div></div>
+<div id="keybox">
+<input id="apikey" type="password" placeholder="Paste your NEW API Key here once..." />
+<button onclick="saveKey()">Save Key</button>
+</div>
+<div id="chat"><div class="msg ai">Yo wassup! Paste your key above first, then ask me anything bro.</div></div>
 <div id="box">
 <input id="input" placeholder="Type here..." />
 <button onclick="send()">Send</button>
 </div>
-
 <script>
-const API_KEY = "AQ.Ab8RN6IbY0qlrEo_fN6yfHIqo2uhmJYvQwqf6idI3BYk4qfHMA";
-
+let API_KEY = localStorage.getItem("mykey") || "";
+if(API_KEY){ document.getElementById("apikey").value = API_KEY; }
+function saveKey(){
+  API_KEY = document.getElementById("apikey").value.trim();
+  localStorage.setItem("mykey", API_KEY);
+  alert("Key saved! Now chat bro 🔥");
+}
 async function send(){
+  if(!API_KEY){ alert("Paste your key first at the top!"); return; }
   let input = document.getElementById("input");
   let text = input.value.trim();
   if(!text) return;
@@ -34,7 +45,6 @@ async function send(){
   chat.innerHTML += `<div class="msg user">${text}</div>`;
   input.value = "";
   chat.scrollTop = chat.scrollHeight;
-
   try {
     let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
       method: "POST",
@@ -42,10 +52,14 @@ async function send(){
       body: JSON.stringify({contents:[{parts:[{text:text}]}]})
     });
     let data = await res.json();
-    let reply = data.candidates[0].content.parts[0].text;
-    chat.innerHTML += `<div class="msg ai">${reply}</div>`;
+    if(data.error){
+      chat.innerHTML += `<div class="msg ai">Google Error: ${data.error.message}</div>`;
+    } else {
+      let reply = data.candidates[0].content.parts[0].text;
+      chat.innerHTML += `<div class="msg ai">${reply}</div>`;
+    }
   } catch(e) {
-    chat.innerHTML += `<div class="msg ai">Error bro: ${e.message} - Check your API key</div>`;
+    chat.innerHTML += `<div class="msg ai">Error bro: ${e.message}</div>`;
   }
   chat.scrollTop = chat.scrollHeight;
 }
