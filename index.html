@@ -7,7 +7,7 @@
 body{background:#111;color:white;font-family:Arial;margin:0;padding:10px}
 h2{text-align:center}
 #chat{height:70vh;overflow-y:auto;background:#1e1e1e;padding:10px;border-radius:10px}
-.msg{margin:8px 0;padding:10px;border-radius:10px}
+.msg{margin:8px 0;padding:10px;border-radius:10px;word-wrap:break-word}
 .user{background:#007bff;text-align:right}
 .ai{background:#333}
 #box{display:flex;margin-top:10px;gap:5px}
@@ -35,18 +35,21 @@ async function send(){
   input.value = "";
   chat.scrollTop = chat.scrollHeight;
 
-  let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({contents:[{parts:[{text:text}]}]})
-  });
-  let data = await res.json();
-  let reply = "Error bro, check your API key";
-  try{ reply = data.candidates[0].content.parts[0].text; }catch(e){}
-  chat.innerHTML += `<div class="msg ai">${reply}</div>`;
+  try {
+    let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({contents:[{parts:[{text:text}]}]})
+    });
+    let data = await res.json();
+    let reply = data.candidates[0].content.parts[0].text;
+    chat.innerHTML += `<div class="msg ai">${reply}</div>`;
+  } catch(e) {
+    chat.innerHTML += `<div class="msg ai">Error bro: ${e.message} - Check your API key</div>`;
+  }
   chat.scrollTop = chat.scrollHeight;
 }
 document.getElementById("input").addEventListener("keydown", e=>{ if(e.key==="Enter") send(); });
 </script>
 </body>
-  </html>
+</html>
