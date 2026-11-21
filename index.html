@@ -13,31 +13,30 @@ h2{text-align:center}
 #box{display:flex;margin-top:10px;gap:5px}
 input{flex:1;padding:12px;border-radius:10px;border:none}
 button{padding:12px 18px;background:#00ff88;border:none;border-radius:10px;font-weight:bold}
-#keybox{display:flex;margin-bottom:10px;gap:5px}
-#keybox input{background:#222;color:white}
+#keybox{margin-bottom:10px}
+#keybox input{background:#222;color:white;width:100%;box-sizing:border-box}
 </style>
 </head>
 <body>
 <h2>🤖 LiveKing AI</h2>
 <div id="keybox">
-<input id="apikey" type="password" placeholder="Paste your NEW API Key here once..." />
-<button onclick="saveKey()">Save Key</button>
+<input id="apikey" type="password" placeholder="Paste your key here - no button needed" />
 </div>
-<div id="chat"><div class="msg ai">Yo wassup! Paste your key above first, then ask me anything bro.</div></div>
+<div id="chat"><div class="msg ai">Yo wassup! Paste your key above, then ask me anything bro.</div></div>
 <div id="box">
 <input id="input" placeholder="Type here..." />
 <button onclick="send()">Send</button>
 </div>
 <script>
-let API_KEY = localStorage.getItem("mykey") || "";
-if(API_KEY){ document.getElementById("apikey").value = API_KEY; }
-function saveKey(){
-  API_KEY = document.getElementById("apikey").value.trim();
-  localStorage.setItem("mykey", API_KEY);
-  alert("Key saved! Now chat bro 🔥");
-}
+let saved = localStorage.getItem("mykey") || "";
+if(saved){ document.getElementById("apikey").value = saved; }
+document.getElementById("apikey").addEventListener("input", e=>{
+  localStorage.setItem("mykey", e.target.value.trim());
+});
 async function send(){
-  if(!API_KEY){ alert("Paste your key first at the top!"); return; }
+  let API_KEY = document.getElementById("apikey").value.trim();
+  if(!API_KEY){ alert("Paste your key at the top first!"); return; }
+  localStorage.setItem("mykey", API_KEY);
   let input = document.getElementById("input");
   let text = input.value.trim();
   if(!text) return;
@@ -54,7 +53,7 @@ async function send(){
     let data = await res.json();
     if(data.error){
       chat.innerHTML += `<div class="msg ai">Google Error: ${data.error.message}</div>`;
-    } else 
+    } else {
       let reply = data.candidates[0].content.parts[0].text;
       chat.innerHTML += `<div class="msg ai">${reply}</div>`;
     }
